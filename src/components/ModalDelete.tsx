@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PostListResponse } from "../pages/Dashboard";
 
 interface ModalDeleteProps {
   postId: number;
@@ -20,29 +21,33 @@ export default function ModalDelete({ postId }: ModalDeleteProps) {
   function deletePost(Id: number) {
     fetch(`https://dev.codeleap.co.uk/careers/${Id}/`, {
       method: "DELETE",
-    })
-      .then((res) => {
-        if (res.ok) {
-          console.log("Deletado com sucesso!");
-        } else {
-          throw new Error("Erro ao deletar o post");
-        }
-      })
-
+    }).then((res) => {
+      if (res.ok) {
+        console.log("Deletado com sucesso!");
+      } else {
+        throw new Error("Erro ao deletar o post");
+      }
+    });
   }
 
   const deleteMutation = useMutation<void, Error, number>({
     mutationFn: async () => deletePost(postId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] }); 
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<PostListResponse>(["posts"], (oldData) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          results: oldData.results.filter((post) => post.id !== id),
+        };
+      });
+
       closeModal();
-      console.log("Post deleted successfully!");
     },
     onError: (error) => {
-      console.error("Deleted post error:", error);
+      console.error("Failed to delete post:", error);
     },
   });
-
 
   return (
     <div>
@@ -79,11 +84,13 @@ export default function ModalDelete({ postId }: ModalDeleteProps) {
             </button>
 
             <button
-              onClick={() => deleteMutation.mutate( postId )}
-              className="bg-LeadRed text-white rounded-lg py-1.5 px-8 font-bold cursor-pointer
-             hover:opacity-80 transition"
+              onClick={() => deleteMutation.mutate(postId)}
+              disabled={deleteMutation.isPending}
+              className={`bg-LeadRed text-white rounded-lg py-1.5 px-8 font-bold cursor-pointer hover:opacity-80 transition ${
+                deleteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Delete
+              {deleteMutation.isPending ? "Excluindo..." : "Delete"}
             </button>
           </div>
         </div>
