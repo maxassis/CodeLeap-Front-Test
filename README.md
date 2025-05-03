@@ -18,7 +18,7 @@ A web application that allows users to share thoughts in the form of posts, with
 
 ---
 
-## 🛠️ Tecnologias Utilizadas  
+## 🛠️ Technologies Used  
 | technology       | description                                      |
 |------------------|------------------------------------------------|
 | **React**        | Library for building the user interface.       |
