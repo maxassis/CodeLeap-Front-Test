@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-LeadGray: #CCCCCC;
+  --color-LeadInput: #777777;
+  --color-LeadButton: #7695EC;
+  --color-LeadHeader: #7695EC;
+  --color-LeadBorder: #999999;
+  --color-LeadBackground: #DDDDDD;
+  --color-LeadRed: #FF5151;
+  --color-LeadGreen: #47B960;
+}
+
+
+html, body, #root {
+  height: 100%;
+}
+
+@layer utilities {
+  dialog::backdrop {
+    @apply bg-black/50;
+  }
+}
+
+dialog {
+  inset: 0;
+  margin: auto;
+}
