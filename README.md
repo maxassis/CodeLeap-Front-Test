@@ -1,15 +1,15 @@
 # CodeLeap Front End Test
 
-A simple social network platform where users can create, view, and delete posts with features like pagination and responsive design.
+This is a test for a Front Fnd Developer position at CodeLeap, and consists of developing a simple social networking platform where users can create, view and delete posts with features like pagination and responsive design.
 
 ---
 
-## 📝 Descrição  
+## 📝 Description  
 A web application that allows users to share thoughts in the form of posts, with features like post creation, page navigation, and content deletion. Built with React, TypeScript, and RESTful API integration.
 
 ---
 
-## 🔧 Funcionalidades  
+## 🔧 Features  
 -   **Create Post**: Form to publish new posts with title and content.
 -   **Pagination**: Navigate between pages using "Next" and "Previous" buttons.
 -   **Delete Post**: Confirmation modal to delete existing posts.
@@ -19,7 +19,7 @@ A web application that allows users to share thoughts in the form of posts, with
 ---
 
 ## 🛠️ Tecnologias Utilizadas  
-| Tecnologia       | Descrição                                      |
+| technology       | description                                      |
 |------------------|------------------------------------------------|
 | **React**        | Library for building the user interface.       |
 | **TypeScript**   | Static typing for better maintainability. |
