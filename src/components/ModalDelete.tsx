@@ -97,7 +97,7 @@ export default function ModalDelete({ postId, currentPageUrl, setCurrentPageUrl 
                 deleteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {deleteMutation.isPending ? "Excluindo..." : "Delete"}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </button>
           </div>
         </div>

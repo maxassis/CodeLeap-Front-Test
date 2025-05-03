@@ -88,7 +88,7 @@ export default function Dashboard() {
                 className="bg-LeadButton text-white rounded-lg w-[112px] h-8 mt-4 font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isDisabled}
               >
-                Create
+                {createMutation.isPending ? "Creating..." : "Create"}
               </button>
             </div>
           </div>
