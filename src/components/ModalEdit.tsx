@@ -1,8 +1,26 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { PostListResponse } from "../pages/Dashboard";
+import { updatePost } from "../api/api-service";
 
-export default function ModalEdit() {
+interface ModalEditProps {
+  postId: number;
+  initialTitle: string;
+  initialContent: string;
+  currentPageUrl: string;
+}
+
+export default function ModalEdit({
+  postId,
+  initialTitle,
+  initialContent,
+  currentPageUrl
+}: ModalEditProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
+  const queryClient = useQueryClient();
 
   function openModal() {
     modalRef.current?.showModal();
@@ -11,6 +29,28 @@ export default function ModalEdit() {
   function closeModal() {
     modalRef.current?.close();
   }
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, title, content }: { id: number; title: string; content: string }) => 
+      updatePost(id, { title, content }),
+    onSuccess: (updatedPost) => {
+      queryClient.setQueryData<PostListResponse>(["posts", currentPageUrl], (oldData) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          results: oldData.results.map((post) =>
+            post.id === updatedPost.id ? updatedPost : post
+          ),
+        };
+      });
+
+      closeModal();
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar post:", error);
+    },
+  });
 
   return (
     <div>
@@ -37,18 +77,39 @@ export default function ModalEdit() {
         className="w-[41.25rem] max-w-[90vw] border border-LeadBorder rounded-2xl p-6"
       >
         <div className="flex flex-col">
-            <h3 className="font-bold text-[1.38rem]">Edit Item</h3>
+          <h3 className="font-bold text-[1.38rem]">Edit Item</h3>
 
-            <span className="mt-6">Title</span>
-            <input className="w-full h-8 mt-2 rounded-lg border border-LeadInput px-4" />
+          <span className="mt-6">Title</span>
+          <input 
+            className="w-full h-8 mt-2 rounded-lg border border-LeadInput px-4" 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
+          />
 
-            <span className="mt-6">Content</span>
-            <input className="w-full h-8 mt-2 rounded-lg border border-LeadInput px-4"/>
+          <span className="mt-6">Content</span>
+          <input 
+            className="w-full h-8 mt-2 rounded-lg border border-LeadInput px-4" 
+            value={content} 
+            onChange={(e) => setContent(e.target.value)} 
+          />
 
-            <div className="flex justify-end items-center mt-6 gap-4">
-                <button onClick={closeModal} className="border border-LeadBorder rounded-lg w-[112px] h-8 font-bold cursor-pointer">Cancel</button>
-                <button className="bg-LeadGreen text-white rounded-lg w-[112px] h-8 font-bold cursor-pointer">Save</button>
-            </div>    
+          <div className="flex justify-end items-center mt-6 gap-4">
+            <button
+              onClick={closeModal}
+              className="border border-LeadBorder rounded-lg w-[112px] h-8 font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                updateMutation.mutate({ id: postId, title, content });
+              }}
+              disabled={updateMutation.isPending}
+              className="bg-LeadGreen text-white rounded-lg w-[112px] h-8 font-bold cursor-pointer hover:opacity-80 transition"
+            >
+              {updateMutation.isPending ? "Loading..." : "Save"}
+            </button>
+          </div>
         </div>
       </dialog>
     </div>

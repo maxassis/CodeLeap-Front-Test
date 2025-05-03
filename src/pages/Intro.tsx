@@ -1,13 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router"; 
 
 export default function Intro() {
   const [username, setUsername] = useState("");
+  const navigate = useNavigate(); 
 
   const isDisabled = username.trim() === "";
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isDisabled) return;
+
+    localStorage.setItem("username", username.trim());
+
+    navigate("/dashboard");
+  };
+
   return (
     <div className="h-screen grid place-items-center bg-LeadBackground">
-      <div className="w-[31.25rem] rounded-2xl border border-LeadGray p-6">
+      <form onSubmit={handleSubmit} className="w-[31.25rem] rounded-2xl border border-LeadGray bg-white p-6">
         <h4 className="text-black font-bold text-[1.38rem]">Welcome to CodeLeap network</h4>
         <h5 className="mt-6">Please enter your username</h5>
         <input
@@ -18,13 +30,14 @@ export default function Intro() {
         />
         <div className="flex justify-end items-center">
           <button
-            className="bg-LeadButton text-white rounded-lg w-[112px] h-8 mt-4 font-bold cursor-pointer disabled:cursor-not-allowed"
+            type="submit"
+            className="bg-LeadButton text-white rounded-lg w-[112px] h-8 mt-4 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isDisabled}
           >
             ENTER
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

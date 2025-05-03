@@ -1,12 +1,15 @@
 import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostListResponse } from "../pages/Dashboard";
+import { deletePost } from "../api/api-service";
 
 interface ModalDeleteProps {
   postId: number;
+  currentPageUrl: string;
+  setCurrentPageUrl: React.Dispatch<React.SetStateAction<string>>
 }
 
-export default function ModalDelete({ postId }: ModalDeleteProps) {
+export default function ModalDelete({ postId, currentPageUrl, setCurrentPageUrl }: ModalDeleteProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const queryClient = useQueryClient();
 
@@ -18,27 +21,31 @@ export default function ModalDelete({ postId }: ModalDeleteProps) {
     modalRef.current?.close();
   }
 
-  function deletePost(Id: number) {
-    fetch(`https://dev.codeleap.co.uk/careers/${Id}/`, {
-      method: "DELETE",
-    }).then((res) => {
-      if (res.ok) {
-        console.log("Deletado com sucesso!");
-      } else {
-        throw new Error("Erro ao deletar o post");
-      }
-    });
-  }
-
   const deleteMutation = useMutation<void, Error, number>({
     mutationFn: async () => deletePost(postId),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<PostListResponse>(["posts"], (oldData) => {
+      queryClient.setQueryData<PostListResponse>(["posts", currentPageUrl], (oldData) => {
         if (!oldData) return oldData;
 
+        const newResults = oldData.results.filter((post) => post.id !== id);
+
+        if (oldData.results.length === 1 && newResults.length === 0) {
+          if (oldData.previous) {
+            setCurrentPageUrl(oldData.previous); 
+
+            queryClient.invalidateQueries({ 
+              queryKey: ["posts", oldData.previous] 
+            });
+          }
+        }
+
+        const PAGE_SIZE = 10;
+        const hasNextPage = newResults.length === PAGE_SIZE && !!oldData.next;
+        
         return {
           ...oldData,
           results: oldData.results.filter((post) => post.id !== id),
+          next: hasNextPage ? oldData.next : null,
         };
       });
 

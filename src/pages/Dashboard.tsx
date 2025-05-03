@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Card from "../components/Card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createPost } from "../api/api-service";
 
 export type Post = {
   id: number;
@@ -21,58 +22,33 @@ export type PostListResponse = {
 export default function Dashboard() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [currentPageUrl, setCurrentPageUrl] = useState(
+    "https://dev.codeleap.co.uk/careers/"
+  );
+  const user = localStorage.getItem("username");
 
   const isDisabled = title.trim() === "" || content.trim() === "";
-
-  function createPost({
-    username,
-    title,
-    content,
-  }: {
-    username: string;
-    title: string;
-    content: string;
-  }) {
-    return fetch("https://dev.codeleap.co.uk/careers/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, title, content }),
-    }).then((res) => {
-      if (!res.ok) throw new Error("Erro ao criar post");
-      return res.json();
-    });
-  }
 
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
     mutationFn: createPost,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] }); 
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
       setTitle("");
       setContent("");
     },
   });
 
-  function getPosts() {
-    return fetch("https://dev.codeleap.co.uk/careers/").then((res) =>
-      res.json()
-    );
-  }
-
   const { data } = useQuery<PostListResponse>({
-    queryKey: ["posts"],
-    queryFn: getPosts,
+    queryKey: ["posts", currentPageUrl],
+    queryFn: () => fetch(currentPageUrl).then((res) => res.json()),
   });
-
-  console.log(data);
 
   return (
     <>
-      <div className="bg-LeadBackground min-h-screen">
-        <div className="min-h-screen max-w-[50rem] mx-auto bg-white">
+      <div className="bg-LeadBackground min-h-screen ">
+        <div className="min-h-screen max-w-[50rem] mx-auto bg-white pb-6">
           <div className="h-20 bg-LeadHeader py-[2.31rem] pl-[1.69rem] flex items-center justify-start border-b border-LeadBorder">
             <h3 className="text-white font-bold text-[1.38rem]">
               CodeLeap NetWork
@@ -81,7 +57,7 @@ export default function Dashboard() {
 
           <div className="p-6 mt-6 mx-6 border border-LeadBorder rounded-xl">
             <h3 className="text-[1.38rem] font-bold mb-6">
-              What’s on your mind?
+              What’s on your mind, {user}?
             </h3>
 
             <span className="block">Title</span>
@@ -104,12 +80,12 @@ export default function Dashboard() {
               <button
                 onClick={() =>
                   createMutation.mutate({
-                    username: "max",
+                    username: user,
                     title,
                     content,
                   })
                 }
-                className="bg-LeadButton text-white rounded-lg w-[112px] h-8 mt-4 font-bold cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-400"
+                className="bg-LeadButton text-white rounded-lg w-[112px] h-8 mt-4 font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isDisabled}
               >
                 Create
@@ -117,7 +93,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mx-6 pb-6">
+          <div className="mx-6 pb-4">
             {data?.results.map((post: Post) => (
               <Card
                 key={post.id}
@@ -126,9 +102,32 @@ export default function Dashboard() {
                 title={post.title}
                 content={post.content}
                 date={post.created_datetime}
+                currentPageUrl={currentPageUrl}
+                setCurrentPageUrl={setCurrentPageUrl}
               />
             ))}
           </div>
+
+          {data?.results && data.results.length > 0 ? (
+            <div className="flex justify-between mt-4 mx-6 mb-6">
+              <button
+                onClick={() =>
+                  data?.previous && setCurrentPageUrl(data.previous)
+                }
+                disabled={!data?.previous}
+                className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => data?.next && setCurrentPageUrl(data.next)}
+                disabled={!data?.next}
+                className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </>
